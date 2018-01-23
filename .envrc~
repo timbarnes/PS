@@ -1,0 +1,5 @@
+# direnv activation file
+echo "Activating PMdev"
+use python 3.6.4
+
+
