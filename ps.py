@@ -14,6 +14,12 @@ def error(message):
     """
     Print an error to a pop-up and set ready to False.
     """
+    w = tkinter.Toplevel()
+    w.title = "Error"
+    m = tkinter.Message(w, text=message, width=400)
+    m.grid(row=0, column=0, pady=20)
+    e = ttk.Button(w, text="OK", command=w.destroy)
+    e.grid(row=1, column=0, pady=20)
     print("Error: {}".format(message))
     ready = False
 
@@ -88,7 +94,7 @@ def checkProject():
         project_number = "{:4}.{:}".format(*getProjectNumber())
         app.project_number.set(project_number)
         if len(app.project_name.get()) < 6:
-            error("Project name should be at least 6 characters")
+            error("Please provide a descriptive project name.")
             return False
         if len(app.project_pm.get()) < 3:
             error("Enter a valid project manager name")
