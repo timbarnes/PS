@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+import tkinter
 from tkinter import ttk
 import utils as u
 
@@ -33,6 +33,8 @@ class Application(ttk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
+        project_type = tkinter.StringVar()
+        project_type.set('Revit')
         # Action buttons along the top
         cr = 0  # current row
         self.label0 = ttk.Label(self, text="Actions:", justify='right')
@@ -51,10 +53,11 @@ class Application(ttk.Frame):
 
         # Project number and name
         cr += 1
-        self.labelBasics = ttk.Label(self,
-                                     padding=20,
-                                     text="BASICS", justify='left')
-        self.labelBasics.grid(row=cr, columnspan=4)
+        next_project = u.getProjectNumber()
+        label_string = "// BASICS // Next project number is: "
+        label_string += "{:04d}.{:03d}".format(next_project[0], next_project[1])
+        self.basicsLabel = ttk.Label(self, padding=20, text=label_string)
+        self.basicsLabel.grid(row=cr, columnspan=4)
         cr += 1
         self.label1 = ttk.Label(self, text="Project Number:", justify='right')
         self.label1.grid(row=cr, column=0)
@@ -93,7 +96,7 @@ class Application(ttk.Frame):
         cr += 1
         self.labelAddress = ttk.Label(self,
                                       padding=20,
-                                      text="PROJECT AND BILLING ADDRESSES")
+                                      text="// PROJECT AND BILLING ADDRESSES //")
         self.labelAddress.grid(row=cr, columnspan=4)
         cr += 1
         self.label5 = ttk.Label(self, text="Project Address:", justify='right')
