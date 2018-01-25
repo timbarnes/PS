@@ -35,7 +35,7 @@ def getProjectNumber():
         return (CURRENT_YEAR, projectNumber + 1)
     except IndexError:
         print("No projects found.")
-        return (0, 0)
+        return ('0000', '000')
 
 
 def makeProjectFolder(name):

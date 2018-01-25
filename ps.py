@@ -55,7 +55,7 @@ class Application(ttk.Frame):
         cr += 1
         next_project = u.getProjectNumber()
         label_string = "// BASICS // Next project number is: "
-        label_string += "{:04d}.{:03d}".format(next_project[0], next_project[1])
+        label_string += "{}.{}".format(*next_project)
         self.basicsLabel = ttk.Label(self, padding=20, text=label_string)
         self.basicsLabel.grid(row=cr, columnspan=4)
         cr += 1
