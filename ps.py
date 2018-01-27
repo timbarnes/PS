@@ -69,9 +69,10 @@ def createProject():
     """
     Create a new project using pre-validated information.
     """
-    print("Creating Project '{} - {}', for {}.".format(app.project_number.get(),
-                                                       app.project_name.get(),
-                                                       app.project_pm.get()))
+    print(("Creating Project '{} - {}'"
+           "for {}.").format(app.project_number.get(),
+                             app.project_name.get(),
+                             app.project_pm.get()))
 
 
 def modifyProject():
@@ -216,19 +217,22 @@ class Application(ttk.Frame):
 
         self.label4 = ttk.Label(self, text="Project Manager:", justify='right')
         self.label4.grid(row=cr, column=2)
-        self.projectManagerEntry = ttk.Entry(self, textvariable=self.project_pm)
+        self.projectManagerEntry = ttk.Entry(self,
+                                             textvariable=self.project_pm)
         self.projectManagerEntry.grid(row=cr, column=3)
 
         # Project Address
         cr += 1
         self.labelAddress = ttk.Label(self,
                                       padding=20,
-                                      text="// PROJECT AND BILLING ADDRESSES //")
+                                      text="// PROJECT AND "
+                                      "BILLING ADDRESSES //")
         self.labelAddress.grid(row=cr, columnspan=4)
         cr += 1
         self.label5 = ttk.Label(self, text="Project Address:", justify='right')
         self.label5.grid(row=cr + 1, column=0)
-        self.projectStreetEntry = ttk.Entry(self, textvariable=self.project_addr)
+        self.projectStreetEntry = ttk.Entry(self,
+                                            textvariable=self.project_addr)
         self.projectStreetEntry.grid(row=cr + 1, column=1)
         self.label6 = ttk.Label(self, text="Project City,State,Zip:",
                                 justify='right')
@@ -243,7 +247,8 @@ class Application(ttk.Frame):
         self.billingNameEntry.grid(row=cr, column=3)
         self.label8 = ttk.Label(self, text="Billing Address:", justify='right')
         self.label8.grid(row=cr + 1, column=2)
-        self.billingStreetEntry = ttk.Entry(self, textvariable=self.billing_addr)
+        self.billingStreetEntry = ttk.Entry(self,
+                                            textvariable=self.billing_addr)
         self.billingStreetEntry.grid(row=cr + 1, column=3)
         self.label9 = ttk.Label(self, text="Project City,State,Zip:",
                                 justify='right')

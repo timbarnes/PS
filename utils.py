@@ -44,29 +44,3 @@ def makeProjectFolder(name):
     """
     folderName = CURRENT_YEAR + '.' + getProjectNumber() + ' - ' + name
     os.mkdir(folderName)
-
-
-def getProjectData(fileName):
-    """
-    Read the data from Excel and return as a dictionary
-    """
-    # print('Opening file: %s', fileName)
-    # pf = openpyxl.load_workbook(fileName)
-    # sheet = pf.active
-    # dict = {'ProjectName': sheet['B3'].value,
-    #         'ProjectType': sheet['B5'].value,
-    #         'ProjectStreet': sheet['B7'].value,
-    #         'ProjectCSZ': sheet['B8'].value,
-    #         'BillingName': sheet['B10'].value,
-    #         'BillingTitle': sheet['B11'].value,
-    #         'BillingPhone': sheet['B12'].value,
-    #         'BillingEmail': sheet['B13'].value,
-    #         'BillingStreet': sheet['B15'].value,
-    #         'BillingCSZ': sheet['B16'].value}
-    # return dict
-    return True
-
-
-# pp = pprint.PrettyPrinter(depth=4)
-#
-# pp.pprint(getProjectData(sys.argv[2]))
