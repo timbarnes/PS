@@ -14,6 +14,7 @@ def error(message):
     """
     Print an error to a pop-up and set ready to False.
     """
+    global ready
     w = tkinter.Toplevel()
     w.title = "Error"
     m = tkinter.Message(w, text=message, width=400)
@@ -47,8 +48,8 @@ def getProjectData(pn):
     pn is a string representing the project number
     """
     result = {}
-    l = len(pn)
-    pf = [x for x in FOLDER_LIST if x[:l] == pn]
+    length = len(pn)
+    pf = [x for x in FOLDER_LIST if x[:length] == pn]
     if len(pf) == 1:
         # We found the folder
         result['project_number'] = pn
@@ -69,6 +70,8 @@ def createProject():
     """
     Create a new project using pre-validated information.
     """
+    if not ready:
+        error("Please check data.")
     print(("Creating Project '{} - {}'"
            "for {}.").format(app.project_number.get(),
                              app.project_name.get(),
@@ -89,6 +92,7 @@ def checkProject():
     If it doesn't exist, fill in the next project number, and check
     that project data is accurate
     """
+    global ready
     project_number = app.project_number.get()
     if len(project_number) < 7:
         # We're creating a new project
@@ -100,6 +104,7 @@ def checkProject():
         if len(app.project_pm.get()) < 3:
             error("Enter a valid project manager name")
             return False
+        ready = True
         return True
     else:
         # We're modifying an existing project_type:
@@ -115,6 +120,7 @@ def checkProject():
             app.billing_csz.set(data['billing_csz'])
         else:
             error("No such project: {}".format(project_number))
+            return False
 
 
 # pn=getProjectNumber()
