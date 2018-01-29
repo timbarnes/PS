@@ -101,18 +101,22 @@ def readProjectData(app):
     """
     Read project information from an Excel template file.
     """
-    filename = "{} - {}".format(app.project_number, app.project_name)
-    print('Opening file: %s', fileName)
-    pf = openpyxl.load_workbook(fileName)
-    sheet = pf.active
-    app.project_pm.set(sheet['B6'])
-    app.project_type.set(sheet['B7'])
-    app.project_addr.set(sheet['B9'])
-    app.project_csz.set(sheet['B10'])
-    app.billing_name.set(sheet['B12'])
-    app.billing_title.set(sheet['B13'])
-    app.billing_addr.set(sheet['B17'])
-    app.csz.set(sheet['B18'])
+    fileName = "{} - {}".format(app.project_number, app.project_name)
+    try:
+        print('Opening file: %s', fileName)
+        pf = openpyxl.load_workbook(fileName)
+        sheet = pf.active
+        app.project_pm.set(sheet['B6'])
+        app.project_type.set(sheet['B7'])
+        app.project_addr.set(sheet['B9'])
+        app.project_csz.set(sheet['B10'])
+        app.billing_name.set(sheet['B12'])
+        app.billing_title.set(sheet['B13'])
+        app.billing_addr.set(sheet['B17'])
+        app.billing_csz.set(sheet['B18'])
+    except FileNotFoundError:
+        error("readProjectData: "
+              "Project spreadsheet not found: {}".format(fileName))
 
 
 def setMode(app, mode):
@@ -121,7 +125,9 @@ def setMode(app, mode):
     """
     app.mode = mode
     if mode == 'create':
+        app.next_pnum = "{}.{}".format(CURRENT_YEAR, getProjectNumber())
         app.project_number.set(app.next_pnum)
+        app.project_number.state = 'disabled'
         app.mode_label.set("// Mode: CREATE - Enter name, type, and PM. //")
     if app.mode == 'modify':
         app.mode_label.set("// Mode: UPDATE - Enter Project Number //")
@@ -154,22 +160,25 @@ def modifyProject(app):
 
 def checkNewProject(app):
     """
-    Check data prior to creating a project.
+    Check project name and PM data prior to creating a project.
+    Project number was set when create mode was invoked.
     """
     global ready
-    project_number = app.project_number.get()
-    if len(project_number) < 7:
-        # We're creating a new project
-        project_number = "{:4}.{:}".format(*getProjectNumber())
-        app.project_number.set(project_number)
-        if len(app.project_name.get()) < 6:
-            error("Please provide a descriptive project name.")
-            return False
-        if len(app.project_pm.get()) < 3:
-            error("Enter a valid project manager name")
-            return False
-        ready = True
-        return True
+    ready = False
+    app.project_name.set(app.project_name.get().strip(' \t\n-'))
+    if len(app.project_name.get()) < 6:
+        error("Project name too short.")
+        return False
+    app.project_pm.set(app.project_pm.get().strip(' \t\n-'))
+    if len(app.project_pm.get()) < 3:
+        error("Enter a valid project manager name")
+        return False
+    if not app.project_type.get() in ['Revit', 'CAD', 'Other']:
+        error("Select a project type (CAD, Revit or Other)")
+        return False
+    ready = True
+    app.mode_label.set("// Mode: CREATE - Ready to GO. //")
+    return True
 
 
 def checkProject(app):
@@ -204,7 +213,7 @@ class Application(ttk.Frame):
     Build the application window and initialize a project
     """
     # Initialize an empty project
-    mode = 'Create'
+    mode = 'create'
     next_pnum = "{}.{}".format(CURRENT_YEAR, getProjectNumber())
 
     def __init__(self, master=None):
@@ -217,21 +226,14 @@ class Application(ttk.Frame):
         self.project_number = tkinter.StringVar()
         self.project_number.set(self.next_pnum)
         self.project_name = tkinter.StringVar()
-        self.project_name.set('-')
         self.project_type = tkinter.StringVar()
         self.project_type.set('Revit')
         self.project_pm = tkinter.StringVar()
-        self.project_pm.set('-')
         self.project_addr = tkinter.StringVar()
-        self.project_addr.set('-')
         self.project_csz = tkinter.StringVar()
-        self.project_csz.set('-')
         self.billing_name = tkinter.StringVar()
-        self.billing_name.set('-')
         self.billing_addr = tkinter.StringVar()
-        self.billing_addr.set('-')
         self.billing_csz = tkinter.StringVar()
-        self.billing_csz.set('-')
         self.grid()
         self.createWidgets()
 
@@ -285,15 +287,15 @@ class Application(ttk.Frame):
         self.projectTypeFrame.grid(row=cr, column=1)
         self.cadRadio = ttk.Radiobutton(
             self.projectTypeFrame,
-            text='CAD', value='CAD', variable=project_type)
+            text='CAD', value='CAD', variable=self.project_type)
         self.cadRadio.grid(row=0, column=1)
         self.revitRadio = ttk.Radiobutton(
             self.projectTypeFrame,
-            text='Revit', value='Revit', variable=project_type)
+            text='Revit', value='Revit', variable=self.project_type)
         self.revitRadio.grid(row=0, column=2)
         self.otherRadio = ttk.Radiobutton(
             self.projectTypeFrame,
-            text='Other', value='Other', variable=project_type)
+            text='Other', value='Other', variable=self.project_type)
         self.otherRadio.grid(row=0, column=3)
 
         self.label4 = ttk.Label(self, text="Project Manager:", justify='right')

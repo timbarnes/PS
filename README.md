@@ -34,3 +34,12 @@ as the main storage mechanism.
 - As the Application is global, it's available to the helper functions.
 - Create, Modify/Update, and GO operate on the stringVars, so the GUI
   is constantly kept up to date.
+
+TASKS
+
+* Set Create mode at startup and check for next project number
+* Check / update next project number every time create mode is selected
+* Reset / cleanup after GO action is completed
+* Better visible indication of current mode
+* Replace popups with a message area
+* Integrate project data spreadsheet to create and update
