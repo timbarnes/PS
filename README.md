@@ -3,23 +3,34 @@ Project Initialization and Update Application
 Based on Python3 and tkinter
 
 Two use modes:
-    1. Project initialization
+    1. Project creation
     2. Project update
 
-Project Initialization
+Project Creation
 
-- Open the app, and enter a project name and type, and project manager
+- Open the app, and select Create mode
+- GUI updates to show the next available project number
+- enter a project name and type, and project manager
 - Optionally provide project address, billing contact and billing address
-- Click "check"
-- Software finds the next available project number and checks other information for errors.
-- Click "create"
+- Click "GO"
+- Software checks the information for errors
 - Software creates the project folder, copies in the files, makes a contact file, updates filenames, and emails Rick
 
 Project Update
 
-- Open the app, and enter a project number
-- Click "load"
-- Software loads known information from the folder
+- Open the app, and select Modify modify mode
+- Enter the project number of an existing project
+- Tab to next field? Or hit Enter?
+- Software loads known information from the project folder
 - User edits the information
-- Click "update"
+- Click "Update"
 - Software writes the changes.
+
+Data structures
+
+Tkinter requires stringVars for all the GUI components, so they will be used
+as the main storage mechanism.
+- They are created by the Application __init__().
+- As the Application is global, it's available to the helper functions.
+- Create, Modify/Update, and GO operate on the stringVars, so the GUI
+  is constantly kept up to date.
