@@ -13,7 +13,6 @@ REVIT_SOURCE = os.path.join(PROJECT_ROOT, 'Revit_Template')
 INFO_FILE = 'Project_Information.xlsx'
 
 FOLDER_LIST = os.listdir(PROJECT_ROOT)    # List of all folders in PROJECT_ROOT
-project_type = 'CAD'                      # Default to CAD
 ready = False                             # Has project been validated?
 
 
@@ -133,10 +132,8 @@ def copyFiles(app, folder):
     dest = buildPath(app)
     try:
         if app.mode == 'CAD':
-            # Copy CAD files
             shutil.copytree(os.path.join(PROJECT_ROOT, CAD_SOURCE), dest)
         elif app.mode == 'Revit':
-            # Copy Revit files
             shutil.copytree(os.path.join(PROJECT_ROOT, REVIT_SOURCE), dest)
         else:
             # 02 Folder only
@@ -165,6 +162,9 @@ def createProject(app):
     Create a new project using pre-validated information.
     """
     global ready
+    if not ready:
+        error("createProject: Not ready - check again")
+        return
     if not app.mode == 'create':
         error('createProject: Mode not set to create')
         ready = False
@@ -181,6 +181,9 @@ def modifyProject(app):
     """
     Alter project information for an existing project.
     """
+    if not ready:
+        error("modifyProject: Not ready - check again")
+        return
     print("Modify project {}".format(app.project_number.get()))
 
 
@@ -215,9 +218,6 @@ def checkProject(app):
         checkNewProject(app)
     elif app.mode == 'modify':
         result = getProjectData(app)
-        if result:
-            # Set up the information retrieved.
-            pass
     else:
         error("checkProject: Invalid mode")
 
