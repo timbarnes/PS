@@ -1,15 +1,20 @@
 #
 import os
+import shutil
 import datetime
 import tkinter
 from tkinter import ttk
 import openpyxl
 
-CURRENT_YEAR = datetime.datetime.now().year  # This year
-PROJECT_ROOT = '.'                        # Where we look (P drive)
+CURRENT_YEAR = datetime.datetime.now().year    # This year
+PROJECT_ROOT = './Test'                        # Where we look (P drive)
+CAD_SOURCE = os.path.join(PROJECT_ROOT, 'CAD_Template')
+REVIT_SOURCE = os.path.join(PROJECT_ROOT, 'Revit_Template')
+INFO_FILE = 'Project_Information.xlsx'
+
+FOLDER_LIST = os.listdir(PROJECT_ROOT)    # List of all folders in PROJECT_ROOT
 project_type = 'CAD'                      # Default to CAD
 ready = False                             # Has project been validated?
-FOLDER_LIST = os.listdir(PROJECT_ROOT)    # List of all folders in PROJECT_ROOT
 
 
 def popup(message):
@@ -32,6 +37,21 @@ def error(message):
     ready = False
 
 
+def buildPath(app, file=None):
+    """
+    Create the path to a file or project folder from app and optional fileName
+    """
+    if file:
+        return os.path.join(PROJECT_ROOT,
+                            "{} - {}".format(app.project_number.get(),
+                                             app.project_name.get()),
+                            file)
+    else:
+        return os.path.join(PROJECT_ROOT,
+                            "{} - {}".format(app.project_number.get(),
+                                             app.project_name.get()))
+
+
 def getProjectNumber():
     """
     Get the number of the most recent project,
@@ -48,6 +68,29 @@ def getProjectNumber():
         return '000'
 
 
+def readProjectData(app):
+    """
+    Read project information from an Excel template file.
+    """
+    fileName = buildPath(app, INFO_FILE)
+    try:
+        print('Opening file: %s', fileName)
+        pf = openpyxl.load_workbook(fileName)
+        sheet = pf.active
+        app.project_name.set(sheet['B4'].value)
+        app.project_pm.set(sheet['B6'].value)
+        app.project_type.set(sheet['B7'].value)
+        app.project_addr.set(sheet['B9'].value)
+        app.project_csz.set(sheet['B10'].value)
+        app.billing_name.set(sheet['B12'].value)
+        # app.billing_title.set(sheet['B13'].value)
+        app.billing_addr.set(sheet['B17'].value)
+        app.billing_csz.set(sheet['B18'].value)
+    except FileNotFoundError:
+        error("readProjectData: "
+              "Project spreadsheet not found: {}".format(fileName))
+
+
 def getProjectData(app):
     """
     Get information for a given project and instantiate in the GUI.
@@ -56,12 +99,14 @@ def getProjectData(app):
     pnum = app.project_number.get()
     length = len(pnum)
     pfolder = [x for x in FOLDER_LIST if x[: length] == pnum]
-    if len(pfolder) == 1:
-        # We found the folder: return a tuple of fullname, number and name
+    if (len(pfolder) == 1 and
+            os.path.isdir(os.path.join(PROJECT_ROOT, pfolder[0]))):
+            # We found the folder: return a tuple of fullname, number and name
         pname = pfolder[0][9:]
         while pname[0] in ['-', ' ']:
             pname = pname[1:]
         app.project_name.set(pname)
+        readProjectData(app)
         return (pfolder[0], pnum, pname)
     else:
         error("getProjectData: No such project: {}".format(pnum))
@@ -73,8 +118,7 @@ def makeProjectFolder(app):
     Create the project name and create the folder for it.
     Assumes data has been validated.
     """
-    folderName = "{} - {}".format(app.project_number.get(),
-                                  app.project_name.get())
+    folderName = buildPath(app)
     try:
         os.mkdir(folderName)
         popup("Folder {} created".format(folderName))
@@ -95,28 +139,6 @@ def copyFiles(app, folder):
     else:
         # 02 Folder only
         pass
-
-
-def readProjectData(app):
-    """
-    Read project information from an Excel template file.
-    """
-    fileName = "{} - {}".format(app.project_number, app.project_name)
-    try:
-        print('Opening file: %s', fileName)
-        pf = openpyxl.load_workbook(fileName)
-        sheet = pf.active
-        app.project_pm.set(sheet['B6'])
-        app.project_type.set(sheet['B7'])
-        app.project_addr.set(sheet['B9'])
-        app.project_csz.set(sheet['B10'])
-        app.billing_name.set(sheet['B12'])
-        app.billing_title.set(sheet['B13'])
-        app.billing_addr.set(sheet['B17'])
-        app.billing_csz.set(sheet['B18'])
-    except FileNotFoundError:
-        error("readProjectData: "
-              "Project spreadsheet not found: {}".format(fileName))
 
 
 def setMode(app, mode):
