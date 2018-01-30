@@ -130,15 +130,19 @@ def copyFiles(app, folder):
     """
     Copy files based on project type to the pre-created folder.
     """
-    if app.mode == 'CAD':
-        # Copy CAD files
-        pass
-    elif app.mode == 'Revit':
-        # Copy Revit files
-        pass
-    else:
-        # 02 Folder only
-        pass
+    dest = buildPath(app)
+    try:
+        if app.mode == 'CAD':
+            # Copy CAD files
+            shutil.copytree(os.path.join(PROJECT_ROOT, CAD_SOURCE), dest)
+        elif app.mode == 'Revit':
+            # Copy Revit files
+            shutil.copytree(os.path.join(PROJECT_ROOT, REVIT_SOURCE), dest)
+        else:
+            # 02 Folder only
+            pass
+    except OSError as e:
+        error("copyFiles: {}".format(e))
 
 
 def setMode(app, mode):
