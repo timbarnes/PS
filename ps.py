@@ -114,59 +114,57 @@ def makeProjectFolder(app):
     Create the project name and create the folder for it.
     Assumes data has been validated.
     """
-    folderName = buildPath(app)
-    try:
-        os.mkdir(folderName)
-        popup("Folder {} created".format(folderName))
-    except FileExistsError:
-        error("makeProjectFolder: Folder already exists")
-
-
-def copyFiles(app, folder):
-    """
-    Copy files based on project type to the pre-created folder.
-    """
-    dest = buildPath(app)
-    try:
-        if app.mode == 'CAD':
-            shutil.copytree(os.path.join(PROJECT_ROOT, CAD_SOURCE), dest)
-        elif app.mode == 'Revit':
-            shutil.copytree(os.path.join(PROJECT_ROOT, REVIT_SOURCE), dest)
-        else:
-            # 02 Folder only
-            pass
-    except OSError as e:
-        error("copyFiles: {}".format(e))
+    pass
 
 
 def setMode(app, mode):
     """
     Sets the mode to 'create' or 'modify' based on button press.
     """
-    app.mode = mode
     if mode == 'create':
         app.next_pnum = "{}.{}".format(CURRENT_YEAR, getProjectNumber())
         app.project_number.set(app.next_pnum)
         app.project_number.state = 'disabled'
-        app.mode_label.set("// Mode: CREATE - Enter name, type, and PM. //")
-    if app.mode == 'modify':
-        app.mode_label.set("// Mode: UPDATE - Enter Project Number //")
-        app.project_number.set('-.-')
+        app.mode_label.set("// New project - enter name, type, and PM. //")
+    elif mode == 'modify':
+        getProjectData(app)
+        app.mode_label.set("// Update project - revise information. //")
+    else:
+        error('setMode: Invalid mode: {}'.format(mode))
+        return
+    app.mode = mode
 
 
 def createProject(app):
     """
     Create a new project using pre-validated information.
     """
+    global FOLDER_LIST  # We'll update it if successful with the new folder.
+
     if not app.mode == 'create':
         error('createProject: Mode not set to create')
-        return
+        return  # We shouldn't have been called
+
     print(("Creating Project '{} - {}'"
            "for {}.").format(app.project_number.get(),
                              app.project_name.get(),
                              app.project_pm.get()))
-    new_folder = makeProjectFolder(app)
-    copyFiles(app, new_folder)
+    new_folder = buildPath(app)
+
+    project_type = app.project_type.get()
+    print("Project type is: {}".format(project_type))
+    print("Folder is: {}".format(new_folder))
+    try:
+        if project_type == 'CAD':
+            shutil.copytree(CAD_SOURCE, new_folder)
+        elif project_type == 'Revit':
+            shutil.copytree(REVIT_SOURCE, new_folder)
+        else:
+            # 02 Folder only
+            pass
+    except OSError as e:
+        error("copyFiles: {}".format(e))
+    FOLDER_LIST += new_folder
 
 
 def modifyProject(app):
@@ -224,7 +222,7 @@ class Application(ttk.Frame):
         ttk.Frame.__init__(self, master)
         # Create the communicating variables
         self.mode_label = tkinter.StringVar()
-        self.mode_label.set("// Select Mode: Create new or Load existing. //")
+        self.mode_label.set("// New project - enter name, type and PM. //")
         self.pnum = getProjectNumber()
         self.project_number = tkinter.StringVar()
         self.project_number.set(self.next_pnum)
@@ -255,7 +253,7 @@ class Application(ttk.Frame):
 
         self.updateButton = ttk.Button(
             self, text='Load', width=12,
-            command=lambda: setMode(self, 'load'))
+            command=lambda: setMode(self, 'modify'))
         self.updateButton.grid(column=2, row=cr)
 
         self.checkButton = ttk.Button(
