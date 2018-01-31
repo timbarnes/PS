@@ -35,17 +35,30 @@ def error(message):
 
 def buildPath(app, file=None):
     """
-    Create the path to a file or project folder from app and optional fileName
+    Create the path to a file or project folder from project_number
+    and optional appended fileName
     """
+    pnum = app.project_number.get()
+    length = len(pnum)
+    pfolder = [x for x in FOLDER_LIST if x[: length] == pnum]
+    if (len(pfolder) == 1 and
+            os.path.isdir(os.path.join(PROJECT_ROOT, pfolder[0]))):
+            # We found the folder
+        pname = pfolder[0][9:]
+        pname = pname.lstrip(' -')
+        app.project_name.set(pname)
+    else:
+        error("Project {} not found".format(pnum))
+        return False
     if file:
         return os.path.join(PROJECT_ROOT,
                             "{} - {}".format(app.project_number.get(),
-                                             app.project_name.get()),
+                                             pname),
                             file)
     else:
         return os.path.join(PROJECT_ROOT,
                             "{} - {}".format(app.project_number.get(),
-                                             app.project_name.get()))
+                                             pname))
 
 
 def getProjectNumber():
@@ -70,10 +83,10 @@ def readProjectData(app):
     """
     fileName = buildPath(app, INFO_FILE)
     try:
-        print('Opening file: %s', fileName)
+        print('Opening file: {}'.format(fileName))
         pf = openpyxl.load_workbook(fileName)
         sheet = pf.active
-        app.project_name.set(sheet['B4'].value)
+        # app.project_name.set(sheet['B4'].value)
         app.project_pm.set(sheet['B6'].value)
         app.project_type.set(sheet['B7'].value)
         app.project_addr.set(sheet['B9'].value)
@@ -82,6 +95,7 @@ def readProjectData(app):
         # app.billing_title.set(sheet['B13'].value)
         app.billing_addr.set(sheet['B17'].value)
         app.billing_csz.set(sheet['B18'].value)
+        pf.close()
     except FileNotFoundError:
         error("readProjectData: "
               "Project spreadsheet not found: {}".format(fileName))
@@ -97,10 +111,9 @@ def getProjectData(app):
     pfolder = [x for x in FOLDER_LIST if x[: length] == pnum]
     if (len(pfolder) == 1 and
             os.path.isdir(os.path.join(PROJECT_ROOT, pfolder[0]))):
-            # We found the folder: return a tuple of fullname, number and name
+            # We found the folder
         pname = pfolder[0][9:]
-        while pname[0] in ['-', ' ']:
-            pname = pname[1:]
+        pname = pname.lstrip(' -')
         app.project_name.set(pname)
         readProjectData(app)
         return (pfolder[0], pnum, pname)
@@ -164,7 +177,7 @@ def createProject(app):
             pass
     except OSError as e:
         error("copyFiles: {}".format(e))
-    FOLDER_LIST += new_folder
+    FOLDER_LIST = os.listdir(PROJECT_ROOT)
 
 
 def modifyProject(app):
@@ -174,6 +187,23 @@ def modifyProject(app):
     # check basic data is in place
     # write updated information to the spreadsheet
     print("Modify project {}".format(app.project_number.get()))
+    fileName = buildPath(app, INFO_FILE)
+    try:
+        print('Opening file: {}'.format(fileName))
+        pf = openpyxl.load_workbook(fileName)
+        sheet = pf.active
+        # app.project_name.set(sheet['B4'].value)
+        sheet['B6'].value = app.project_pm.get()
+        sheet['B7'].value = app.project_type.get()
+        sheet['B9'].value = app.project_addr.get()
+        sheet['B10'].value = app.project_csz.get()
+        sheet['B12'].value = app.billing_name.get()
+        sheet['B17'].value = app.billing_addr.get()
+        sheet['B18'].value = app.billing_csz.get()
+        pf.close()
+    except FileNotFoundError:
+        error("readProjectData: "
+              "Project spreadsheet not found: {}".format(fileName))
 
 
 def checkNewProject(app):
@@ -203,7 +233,7 @@ def write(app):
     if app.mode == 'create':
         if checkNewProject(app):
             createProject(app)
-    elif app.mode == 'load':
+    elif app.mode == 'modify':
         modifyProject(app)
     else:
         error("Invalid mode: {}".format(app.mode))
