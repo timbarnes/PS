@@ -13,7 +13,6 @@ REVIT_SOURCE = os.path.join(PROJECT_ROOT, 'Revit_Template')
 INFO_FILE = 'Project_Information.xlsx'
 
 FOLDER_LIST = os.listdir(PROJECT_ROOT)    # List of all folders in PROJECT_ROOT
-ready = False                             # Has project been validated?
 
 
 def popup(message):
@@ -29,11 +28,9 @@ def popup(message):
 
 def error(message):
     """
-    Print an error to a pop-up and set ready to False.
+    Print an error to a pop-up.
     """
-    global ready
     popup("Error: {}".format(message))
-    ready = False
 
 
 def buildPath(app, file=None):
@@ -161,13 +158,8 @@ def createProject(app):
     """
     Create a new project using pre-validated information.
     """
-    global ready
-    if not ready:
-        error("createProject: Not ready - check again")
-        return
     if not app.mode == 'create':
         error('createProject: Mode not set to create')
-        ready = False
         return
     print(("Creating Project '{} - {}'"
            "for {}.").format(app.project_number.get(),
@@ -181,9 +173,8 @@ def modifyProject(app):
     """
     Alter project information for an existing project.
     """
-    if not ready:
-        error("modifyProject: Not ready - check again")
-        return
+    # check basic data is in place
+    # write updated information to the spreadsheet
     print("Modify project {}".format(app.project_number.get()))
 
 
@@ -192,8 +183,6 @@ def checkNewProject(app):
     Check project name and PM data prior to creating a project.
     Project number was set when create mode was invoked.
     """
-    global ready
-    ready = False
     app.project_name.set(app.project_name.get().strip(' \t\n-'))
     if len(app.project_name.get()) < 6:
         error("Project name too short.")
@@ -205,30 +194,18 @@ def checkNewProject(app):
     if not app.project_type.get() in ['Revit', 'CAD', 'Other']:
         error("Select a project type (CAD, Revit or Other)")
         return False
-    ready = True
     app.mode_label.set("// Mode: CREATE - Ready to GO. //")
     return True
 
 
-def checkProject(app):
+def write(app):
     """
-    Either check elements of a new project, or load an existing project.
-    """
-    if app.mode == 'create':
-        checkNewProject(app)
-    elif app.mode == 'modify':
-        result = getProjectData(app)
-    else:
-        error("checkProject: Invalid mode")
-
-
-def go(app):
-    """
-    Executes a function based on the current mode.
+    Writes to file system based on the current mode.
     """
     if app.mode == 'create':
-        createProject(app)
-    elif app.mode == 'modify':
+        if checkNewProject(app):
+            createProject(app)
+    elif app.mode == 'load':
         modifyProject(app)
     else:
         error("Invalid mode: {}".format(app.mode))
@@ -247,7 +224,7 @@ class Application(ttk.Frame):
         ttk.Frame.__init__(self, master)
         # Create the communicating variables
         self.mode_label = tkinter.StringVar()
-        self.mode_label.set("// Select Mode: Create or Update. //")
+        self.mode_label.set("// Select Mode: Create new or Load existing. //")
         self.pnum = getProjectNumber()
         self.project_number = tkinter.StringVar()
         self.project_number.set(self.next_pnum)
@@ -269,24 +246,21 @@ class Application(ttk.Frame):
         """
         # Action buttons along the top
         cr = 0  # current row
+        self.label1 = ttk.Label(self, text="Actions:", justify='right')
+        self.label1.grid(row=cr, column=0)
         self.createButton = ttk.Button(
             self, text='Create', width=12,
             command=lambda: setMode(self, 'create'))
-        self.createButton.grid(column=0, row=cr)
+        self.createButton.grid(column=1, row=cr)
 
         self.updateButton = ttk.Button(
-            self, text='Update', width=12,
-            command=lambda: setMode(self, 'modify'))
-        self.updateButton.grid(column=1, row=cr)
-
-        self.createButton = ttk.Button(
-            self, text='Check', width=12,
-            command=lambda: checkProject(self))
-        self.createButton.grid(column=2, row=cr)
+            self, text='Load', width=12,
+            command=lambda: setMode(self, 'load'))
+        self.updateButton.grid(column=2, row=cr)
 
         self.checkButton = ttk.Button(
-            self, text='GO', width=12,
-            command=lambda: go(self))
+            self, text='Write', width=12,
+            command=lambda: write(self))
         self.checkButton.grid(column=3, row=cr)
 
         # Project number and name
