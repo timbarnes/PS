@@ -211,6 +211,7 @@ def modifyProject(app):
     except FileNotFoundError:
         error("readProjectData: "
               "Project spreadsheet not found: {}".format(fileName))
+    app.mode_label.set("// Project created. //")
 
 
 def checkNewProject(app):
@@ -218,8 +219,14 @@ def checkNewProject(app):
     Check project name and PM data prior to creating a project.
     Project number was set when create mode was invoked.
     """
-    app.project_name.set(app.project_name.get().strip(' \t\n-'))
-    if len(app.project_name.get()) < 6:
+    pname = app.project_name.get()
+    tr_table = str.maketrans('', '', ',;:"\'\\`~!%^#&{}|<>?*/')
+    clean_name = pname.translate(tr_table)
+    clean_name = clean_name.strip('_ .\t\n-')
+    if clean_name != pname:
+        error("Name cannot contain special characters")
+        return False
+    if len(clean_name) < 6:
         error("Project name too short.")
         return False
     app.project_pm.set(app.project_pm.get().strip(' \t\n-'))
@@ -284,7 +291,7 @@ class Application(ttk.Frame):
         self.label1 = ttk.Label(self, text="Actions:", justify='right')
         self.label1.grid(row=cr, column=0)
         self.createButton = tkinter.Button(
-            self, text='Create', width=12, background='orange',
+            self, text='Create', width=12, highlightbackground='orange',
             command=lambda: setMode(self, 'create'))
         self.createButton.grid(column=1, row=cr)
 
