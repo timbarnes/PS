@@ -139,9 +139,13 @@ def setMode(app, mode):
         app.project_number.set(app.next_pnum)
         app.project_number.state = 'disabled'
         app.mode_label.set("// New project - enter name, type, and PM. //")
+        app.createButton.config(highlightbackground='#FF6600')
+        app.updateButton.config(highlightbackground='#AAAAAA')
     elif mode == 'modify':
         getProjectData(app)
         app.mode_label.set("// Update project - revise information. //")
+        app.createButton.config(highlightbackground='#AAAAAA')
+        app.updateButton.config(highlightbackground='#FF6600')
     else:
         error('setMode: Invalid mode: {}'.format(mode))
         return
@@ -276,12 +280,12 @@ class Application(ttk.Frame):
         cr = 0  # current row
         self.label1 = ttk.Label(self, text="Actions:", justify='right')
         self.label1.grid(row=cr, column=0)
-        self.createButton = ttk.Button(
-            self, text='Create', width=12,
+        self.createButton = tkinter.Button(
+            self, text='Create', width=12, background='orange',
             command=lambda: setMode(self, 'create'))
         self.createButton.grid(column=1, row=cr)
 
-        self.updateButton = ttk.Button(
+        self.updateButton = tkinter.Button(
             self, text='Load', width=12,
             command=lambda: setMode(self, 'modify'))
         self.updateButton.grid(column=2, row=cr)
@@ -369,8 +373,8 @@ class Application(ttk.Frame):
 
         # Quit button at the bottom right
         cr += 3
-        self.quitButton = ttk.Button(self, text='Quit',
-                                     command=self.quit)
+        self.quitButton = tk.Button(self, text='Quit',
+                                    command=self.quit)
         self.quitButton.grid(column=3, row=cr
                              )
 
