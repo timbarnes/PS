@@ -36,29 +36,32 @@ def error(message):
 def buildPath(app, file=None):
     """
     Create the path to a file or project folder from project_number
-    and optional appended fileName
+    and optional appended fileName. If new, it's a new folder being created.
     """
-    pnum = app.project_number.get()
-    length = len(pnum)
-    pfolder = [x for x in FOLDER_LIST if x[: length] == pnum]
-    if (len(pfolder) == 1 and
-            os.path.isdir(os.path.join(PROJECT_ROOT, pfolder[0]))):
-            # We found the folder
-        pname = pfolder[0][9:]
-        pname = pname.lstrip(' -')
-        app.project_name.set(pname)
-    else:
-        error("Project {} not found".format(pnum))
-        return False
-    if file:
-        return os.path.join(PROJECT_ROOT,
-                            "{} - {}".format(app.project_number.get(),
-                                             pname),
-                            file)
-    else:
-        return os.path.join(PROJECT_ROOT,
-                            "{} - {}".format(app.project_number.get(),
-                                             pname))
+    if len(app.project_name.get()) < 3:
+        # Search for, and set project name
+        pnum = app.project_number
+        length = len(pnum)
+        pfolder = [x for x in FOLDER_LIST if x[: length] == pnum]
+        if (len(pfolder) == 1 and
+                os.path.isdir(os.path.join(PROJECT_ROOT, pfolder[0]))):
+                # We found the folder
+            pname = pfolder[0][8:]
+            pname = pname.lstrip(' -')
+            app.project_name.set(pname)
+        else:
+            error("Project {} not found".format(pnum))
+            return False
+    else:  # We're looking for an existing folder or file
+        if file:  # It's a file within a project folder
+            return os.path.join(PROJECT_ROOT,
+                                "{} {}".format(app.project_number.get(),
+                                               app.project_name.get()),
+                                file)
+        else:  # It's a project folder
+            return os.path.join(PROJECT_ROOT,
+                                "{} {}".format(app.project_number.get(),
+                                               app.project_name.get()))
 
 
 def getProjectNumber():
@@ -162,10 +165,10 @@ def createProject(app):
         error('createProject: Mode not set to create')
         return  # We shouldn't have been called
 
-    print(("Creating Project '{} - {}'"
-           "for {}.").format(app.project_number.get(),
-                             app.project_name.get(),
-                             app.project_pm.get()))
+    print(("Creating Project '{} {}'"
+           " for {}.").format(app.project_number.get(),
+                              app.project_name.get(),
+                              app.project_pm.get()))
     new_folder = buildPath(app)
 
     project_type = app.project_type.get()
@@ -373,8 +376,8 @@ class Application(ttk.Frame):
 
         # Quit button at the bottom right
         cr += 3
-        self.quitButton = tk.Button(self, text='Quit',
-                                    command=self.quit)
+        self.quitButton = tkinter.Button(self, text='Quit',
+                                         command=self.quit)
         self.quitButton.grid(column=3, row=cr
                              )
 
